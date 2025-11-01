@@ -6,6 +6,7 @@ const Navbar = () => {
   const navigate = useNavigate();
   const { darkMode, setDarkMode } = useTheme();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const token = localStorage.getItem('token');
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
@@ -36,13 +37,61 @@ const Navbar = () => {
             >
               Home
             </Link>
-            {user?.role === 'admin' && (
-              <Link 
-                to="/create-post" 
-                className={`${darkMode ? 'text-gray-300 hover:text-white' : 'text-gray-700 hover:text-blue-600'} font-medium transition-colors`}
-              >
-                Create Post
-              </Link>
+
+            {token && (
+              <>
+                {user?.role === 'admin' && (
+                  <>
+                    <Link 
+                      to="/create-post" 
+                      className={`${darkMode ? 'text-gray-300 hover:text-white' : 'text-gray-700 hover:text-blue-600'} font-medium transition-colors`}
+                    >
+                      Create Post
+                    </Link>
+                    <Link 
+                      to="/categories" 
+                      className={`${darkMode ? 'text-gray-300 hover:text-white' : 'text-gray-700 hover:text-blue-600'} font-medium transition-colors`}
+                    >
+                      Categories
+                    </Link>
+                  </>
+                )}
+                
+                {/* User Dropdown */}
+                <div className="relative">
+                  <button
+                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                    className="flex items-center space-x-2 focus:outline-none"
+                  >
+                    <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
+                      {user?.username?.charAt(0).toUpperCase()}
+                    </div>
+                    <svg className={`w-4 h-4 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+
+                  {isDropdownOpen && (
+                    <div className={`absolute right-0 mt-2 w-48 rounded-lg shadow-lg ${darkMode ? 'bg-gray-800' : 'bg-white'} ring-1 ring-black ring-opacity-5`}>
+                      <div className="py-1">
+                        <Link
+                          to="/profile"
+                          className={`block px-4 py-2 text-sm ${darkMode ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-100'}`}
+                          onClick={() => setIsDropdownOpen(false)}
+                        >
+                          My Profile
+                        </Link>
+                        <button
+                          onClick={handleLogout}
+                          className={`block w-full text-left px-4 py-2 text-sm text-red-500 ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
+                        >
+                          Logout
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </>
             )}
             
             {/* Dark Mode Toggle */}
@@ -63,7 +112,7 @@ const Navbar = () => {
             </button>
 
             {/* Auth Buttons */}
-            {!token ? (
+            {!token && (
               <>
                 <Link 
                   to="/login" 
@@ -78,13 +127,6 @@ const Navbar = () => {
                   Sign Up
                 </Link>
               </>
-            ) : (
-              <button
-                onClick={handleLogout}
-                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors font-medium"
-              >
-                Logout
-              </button>
             )}
           </div>
 
@@ -109,12 +151,27 @@ const Navbar = () => {
             <Link to="/" className={`block py-2 px-4 rounded ${darkMode ? 'text-gray-300 hover:bg-gray-800' : 'text-gray-700 hover:bg-gray-100'}`}>
               Home
             </Link>
-            {user?.role === 'admin' && (
-              <Link to="/create-post" className={`block py-2 px-4 rounded ${darkMode ? 'text-gray-300 hover:bg-gray-800' : 'text-gray-700 hover:bg-gray-100'}`}>
-                Create Post
-              </Link>
+            {token && (
+              <>
+                <Link to="/profile" className={`block py-2 px-4 rounded ${darkMode ? 'text-gray-300 hover:bg-gray-800' : 'text-gray-700 hover:bg-gray-100'}`}>
+                  My Profile
+                </Link>
+                {user?.role === 'admin' && (
+                  <>
+                    <Link to="/create-post" className={`block py-2 px-4 rounded ${darkMode ? 'text-gray-300 hover:bg-gray-800' : 'text-gray-700 hover:bg-gray-100'}`}>
+                      Create Post
+                    </Link>
+                    <Link to="/categories" className={`block py-2 px-4 rounded ${darkMode ? 'text-gray-300 hover:bg-gray-800' : 'text-gray-700 hover:bg-gray-100'}`}>
+                      Categories
+                    </Link>
+                  </>
+                )}
+                <button onClick={handleLogout} className="block py-2 px-4 text-red-500 w-full text-left">
+                  Logout
+                </button>
+              </>
             )}
-            {!token ? (
+            {!token && (
               <>
                 <Link to="/login" className={`block py-2 px-4 rounded ${darkMode ? 'text-gray-300 hover:bg-gray-800' : 'text-gray-700 hover:bg-gray-100'}`}>
                   Login
@@ -123,10 +180,6 @@ const Navbar = () => {
                   Sign Up
                 </Link>
               </>
-            ) : (
-              <button onClick={handleLogout} className="block py-2 px-4 text-red-500 w-full text-left">
-                Logout
-              </button>
             )}
           </div>
         )}

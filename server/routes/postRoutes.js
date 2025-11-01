@@ -1,31 +1,20 @@
 import express from 'express';
 import Post from '../models/Post.js';
-import { verifyAdmin, verifyToken } from '../middleware/authMiddleware.js';
+import { authenticate } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// CREATE (requires login)
-router.post('/', verifyToken, async (req, res) => {
-  try {
-    const newPost = new Post(req.body);
-    const savedPost = await newPost.save();
-    res.status(201).json(savedPost);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
-});
-
-// READ ALL (public)
+// Get all posts
 router.get('/', async (req, res) => {
   try {
-    const posts = await Post.find().populate('category');
+    const posts = await Post.find().populate('category').sort({ createdAt: -1 });
     res.json(posts);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// READ ONE (public)
+// Get single post
 router.get('/:id', async (req, res) => {
   try {
     const post = await Post.findById(req.params.id).populate('category');
@@ -36,23 +25,82 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// UPDATE (admin only)
-router.put('/:id', verifyAdmin, async (req, res) => {
+// Create post
+router.post('/', authenticate, async (req, res) => {
   try {
-    const updatedPost = await Post.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    if (!updatedPost) return res.status(404).json({ error: 'Post not found' });
-    res.json(updatedPost);
+    const post = new Post(req.body);
+    await post.save();
+    await post.populate('category');
+    res.status(201).json(post);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
 });
 
-// DELETE (admin only)
-router.delete('/:id', verifyAdmin, async (req, res) => {
+// Update post
+router.put('/:id', authenticate, async (req, res) => {
   try {
-    const deletedPost = await Post.findByIdAndDelete(req.params.id);
-    if (!deletedPost) return res.status(404).json({ error: 'Post not found' });
-    res.json({ message: 'Post deleted successfully' });
+    const post = await Post.findByIdAndUpdate(req.params.id, req.body, { new: true }).populate('category');
+    if (!post) return res.status(404).json({ error: 'Post not found' });
+    res.json(post);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// Delete post
+router.delete('/:id', authenticate, async (req, res) => {
+  try {
+    const post = await Post.findByIdAndDelete(req.params.id);
+    if (!post) return res.status(404).json({ error: 'Post not found' });
+    res.json({ message: 'Post deleted' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Like post
+router.post('/:id/like', authenticate, async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+    if (!post) return res.status(404).json({ error: 'Post not found' });
+    
+    post.likes = (post.likes || 0) + 1;
+    await post.save();
+    
+    res.json({ likes: post.likes });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Add comment
+router.post('/:id/comment', authenticate, async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+    if (!post) return res.status(404).json({ error: 'Post not found' });
+    
+    const comment = {
+      author: req.body.author,
+      text: req.body.text,
+      createdAt: new Date()
+    };
+    
+    post.comments.push(comment);
+    await post.save();
+    
+    res.status(201).json(comment);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// Get post comments
+router.get('/:id/comments', async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+    if (!post) return res.status(404).json({ error: 'Post not found' });
+    res.json(post.comments);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

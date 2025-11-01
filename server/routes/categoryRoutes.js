@@ -1,58 +1,47 @@
 import express from 'express';
 import Category from '../models/Category.js';
-import { verifyAdmin, verifyToken } from '../middleware/authMiddleware.js';
+import { authenticate, requireAdmin } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// CREATE (admin only)
-router.post('/', verifyAdmin, async (req, res) => {
-  try {
-    const newCategory = new Category(req.body);
-    const savedCategory = await newCategory.save();
-    res.status(201).json(savedCategory);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
-});
-
-// READ ALL (public)
+// Get all categories
 router.get('/', async (req, res) => {
   try {
-    const categories = await Category.find();
+    const categories = await Category.find().sort({ name: 1 });
     res.json(categories);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// READ ONE (public)
-router.get('/:id', async (req, res) => {
+// Create category (admin only)
+router.post('/', authenticate, requireAdmin, async (req, res) => {
   try {
-    const category = await Category.findById(req.params.id);
-    if (!category) return res.status(404).json({ error: 'Category not found' });
-    res.json(category);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// UPDATE (admin only)
-router.put('/:id', verifyAdmin, async (req, res) => {
-  try {
-    const updatedCategory = await Category.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    if (!updatedCategory) return res.status(404).json({ error: 'Category not found' });
-    res.json(updatedCategory);
+    const category = new Category(req.body);
+    await category.save();
+    res.status(201).json(category);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
 });
 
-// DELETE (admin only)
-router.delete('/:id', verifyAdmin, async (req, res) => {
+// Update category (admin only)
+router.put('/:id', authenticate, requireAdmin, async (req, res) => {
   try {
-    const deletedCategory = await Category.findByIdAndDelete(req.params.id);
-    if (!deletedCategory) return res.status(404).json({ error: 'Category not found' });
-    res.json({ message: 'Category deleted successfully' });
+    const category = await Category.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!category) return res.status(404).json({ error: 'Category not found' });
+    res.json(category);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// Delete category (admin only)
+router.delete('/:id', authenticate, requireAdmin, async (req, res) => {
+  try {
+    const category = await Category.findByIdAndDelete(req.params.id);
+    if (!category) return res.status(404).json({ error: 'Category not found' });
+    res.json({ message: 'Category deleted' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

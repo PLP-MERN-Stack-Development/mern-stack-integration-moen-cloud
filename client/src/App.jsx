@@ -6,6 +6,8 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import PostForm from './pages/PostForm';
+import Profile from './pages/Profile';
+import CategoryManager from './pages/CategoryManager';
 
 function App() {
   return (
@@ -16,10 +18,26 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <Layout><Profile /></Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/create-post"
             element={
               <ProtectedRoute adminOnly={true}>
                 <Layout><PostForm /></Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/categories"
+            element={
+              <ProtectedRoute adminOnly={true}>
+                <Layout><CategoryManager /></Layout>
               </ProtectedRoute>
             }
           />
