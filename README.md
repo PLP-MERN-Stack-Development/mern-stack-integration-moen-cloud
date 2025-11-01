@@ -60,5 +60,9 @@ Posts reference `author` and `category`, and include embedded or referenced comm
 
 ---
 
-## Project Structure
+## ## Live Demo
+
+Check out the live frontend here: [BlogSphere Frontend](https://blogsphere-frontend.onrender.com)
+Check out the live backend here: [BlogSphere Frontend](https://blogsphere-api-wry8.onrender.com)
+
 
