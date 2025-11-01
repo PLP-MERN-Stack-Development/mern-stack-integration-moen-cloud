@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const API = axios.create({
-  baseURL: 'http://localhost:5000/api',
+  baseURL: 'https://blogsphere-api-wry8.onrender.com',
 });
 
 API.interceptors.request.use((req) => {
